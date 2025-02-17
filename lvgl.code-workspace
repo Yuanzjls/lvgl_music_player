@@ -1,0 +1,35 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Drivers"
+		},
+		{
+			"path": "C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Middlewares/Third_Party/FreeRTOS/Source"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"main.h": "c",
+			"stm32h7xx_hal.h": "c",
+			"stm32h7xx_it.h": "c",
+			"stm32h747i_discovery_lcd.h": "c",
+			"lcd.h": "c",
+			"nt35510.h": "c",
+			"dma_uart.h": "c",
+			"typeinfo": "c",
+			"stm32h747i_discovery_sdram.h": "c",
+			"sdram.h": "c",
+			"stm32h7xx_hal_conf.h": "c",
+			"cmsis_os.h": "c",
+			"lvgl_display.h": "c",
+			"stm32h747i_discovery_ts.h": "c",
+			"lv_demo_music_main.h": "c"
+		},
+		"editor.formatOnSave": true,
+		"notebook.defaultFormatter": "ms-vscode.cpptools",
+		"C_Cpp.formatting": "clangFormat"
+	}
+}

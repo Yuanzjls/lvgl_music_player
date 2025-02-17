@@ -1,0 +1,12 @@
+STM32CubeIDE/CM7/Debug
+STM32CubeIDE/CM4/Debug
+*.avi
+*.bmp
+*.png
+*.gif
+*.css
+*.exe
+*.zip
+*.jpg
+*.wav
+*.svg
