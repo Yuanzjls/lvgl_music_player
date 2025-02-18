@@ -20,7 +20,8 @@
                 "USE_HAL_DRIVER",
                 "STM32H747xx",
                 "USE_PWR_DIRECT_SMPS_SUPPLY",
-                "CORE_CM4"
+                "CORE_CM4",
+                "USE_SD_BUS_WIDE_4B"
             ],
             "windowsSdkVersion": "10.0.22000.0",
             "compilerPath": "C:/ST/STM32CubeIDE_1.17.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.1.0.202410251130/tools/bin/arm-none-eabi-gcc.exe",
