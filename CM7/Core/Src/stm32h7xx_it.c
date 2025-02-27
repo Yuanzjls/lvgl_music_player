@@ -25,6 +25,8 @@
 #include "dma_uart.h"
 #include "stm32h747i_discovery_sdram.h"
 #include "stm32h747i_discovery_ts.h"
+#include "stm32h747i_discovery_sd.h"
+#include "stm32h747i_discovery_audio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -224,5 +226,15 @@ void DMA2D_IRQHandler(void)
 void EXTI9_5_IRQHandler(void)
 {
   BSP_TS_IRQHandler(0); // Pass the EXTI handle
+}
+
+void SDMMC1_IRQHandler(void)
+{
+  HAL_SD_IRQHandler(&hsd_sdmmc[0]);
+}
+
+// DMA2_Stream1_IRQHandler to handle sai dma interrupt
+void AUDIO_OUT_SAIx_DMAx_IRQHandler(void) {
+  BSP_AUDIO_OUT_IRQHandler(0);
 }
 /* USER CODE END 1 */

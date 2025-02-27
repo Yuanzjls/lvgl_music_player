@@ -26,9 +26,12 @@
 #include "stm32h747i_discovery_lcd.h"
 #include "stm32h747i_discovery_ts.h"
 #include "dma_uart.h"
+#include "ff_gen_drv.h"
+#include "sd_diskio_dma_rtos.h"
 #include "lvgl_display.h"
 #include "lvgl_touch.h"
 #include "lvgl.h"
+#include "audio_player.h"
 // #include "src/lv_init.h"
 /* USER CODE END Includes */
 
@@ -53,13 +56,16 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+
+
+char SD_Path[4]; /* SD card logical drive path */
+FATFS SDFatFS;
 extern DMA2D_HandleTypeDef hlcd_dma2d;
 
 // LTDC_HandleTypeDef hltdc;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
-
 SDRAM_HandleTypeDef hsdram1;
 
 /* Definitions for blink_led */
@@ -74,10 +80,19 @@ osThreadId_t lcdTaskHandle;
 const osThreadAttr_t lcdTask_attributes = {
     .name = "lcdTask",
     .stack_size = 1024 * 10,
-    .priority = (osPriority_t)osPriorityLow,
+    .priority = (osPriority_t)osPriorityLow7,
 };
-/* USER CODE BEGIN PV */
+/* Definitions for file_reader_handler*/
+osThreadId_t music_file_Handle;
+const osThreadAttr_t music_file_handler_attributes = {
+    .name = "file_reader_handler",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityBelowNormal,
+};
 
+/* USER CODE BEGIN PV */
+#define music_block_size 9600u
+uint16_t music_buffer[music_block_size];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,6 +103,7 @@ static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
 void StartBlinkTask(void *argument);
 void StartLCD(void *argument);
+void MusicFileHandler(void *argument);
 
 /* USER CODE BEGIN PFP */
 static void SystemClock_Config_Overrider(void);
@@ -261,17 +277,17 @@ int main(void)
   /* USER CODE END 1 */
   /* USER CODE BEGIN Boot_Mode_Sequence_0 */
   int32_t timeout;
-  /* USER CODE END Boot_Mode_Sequence_0 */
-
-  /* USER CODE BEGIN Boot_Mode_Sequence_1 */
-  /* Wait until CPU2 boots and enters in stop mode or timeout*/
-  timeout = 0xFFFF;
-  while ((__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY) != RESET) && (timeout-- > 0))
-    ;
-  if (timeout < 0)
-  {
-    Error_Handler();
-  }
+//  /* USER CODE END Boot_Mode_Sequence_0 */
+//
+//  /* USER CODE BEGIN Boot_Mode_Sequence_1 */
+//  /* Wait until CPU2 boots and enters in stop mode or timeout*/
+//  timeout = 0xFFFF;
+//  while ((__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY) != RESET) && (timeout-- > 0))
+//    ;
+//  if (timeout < 0)
+//  {
+//    Error_Handler();
+//  }
   /* USER CODE END Boot_Mode_Sequence_1 */
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -317,12 +333,14 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
+
   //  MX_FMC_Init();
   /* USER CODE BEGIN 2 */
   BSP_LCD_Init(0, LCD_ORIENTATION_LANDSCAPE);
@@ -338,13 +356,14 @@ int main(void)
   BSP_TS_Init(0, &hTS);
   BSP_TS_EnableIT(0);
 
-  lv_init();
-  lvgl_display_init();
-  lvgl_touchscreen_init();
-  lv_demo_music();
+ lv_init();
+ lvgl_display_init();
+ lvgl_touchscreen_init();
+ lv_demo_music();
 
   lv_tick_set_cb(HAL_GetTick);
   /* USER CODE END 2 */
+
 
   /* Init scheduler */
   osKernelInitialize();
@@ -372,6 +391,9 @@ int main(void)
 
   /* creation of lcdTask */
   lcdTaskHandle = osThreadNew(StartLCD, NULL, &lcdTask_attributes);
+
+  /* creation of file reader*/
+  music_file_Handle = osThreadNew(MusicFileHandler, NULL, &music_file_handler_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -620,10 +642,9 @@ static void MX_GPIO_Init(void)
  * @retval None
  */
 /* USER CODE END Header_StartBlinkTask */
+
 void StartBlinkTask(void *argument)
 {
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
   HAL_GPIO_TogglePin(GPIOI, LED1_Pin);
   HAL_GPIO_TogglePin(GPIOI, LED3_Pin);
   for (;;)
@@ -638,6 +659,59 @@ void StartBlinkTask(void *argument)
   /* USER CODE END 5 */
 }
 
+/* USER CODE BEGIN FileRead*/
+/**
+ * @brief  Function implement read music file function.
+ * @param  argument: Not used
+ * @retval None
+ */
+FIL music_file;
+void MusicFileHandler(void *argument) {
+  /* USER CODE BEGIN 5 */
+  if(BSP_SD_Init(0) == BSP_ERROR_NONE) {
+	  if (FATFS_LinkDriver(&SD_Driver, SD_Path) == 0) {
+		  if (f_mount(&SDFatFS, (TCHAR const *)SD_Path, 0) != FR_OK) {
+			  Error_Handler();
+		  }
+	  }
+  } else {
+	  Error_Handler();
+  }
+  FRESULT res = f_open(&music_file, "test.wav", FA_READ); 
+  if  (res == FR_OK) {
+    DMA_Uart_Send("Successfully open the file\r\n", 29);
+  } else {
+    // failed to open file
+    char res_char = res + '0';
+    DMA_Uart_Send("Error Open file: ", 18);
+    DMA_Uart_Send(&res_char, 1);
+    DMA_Uart_Send("\r\n", 2);
+    Error_Handler();
+  }
+  ;
+
+  if (f_read(&music_file, &music_buffer, music_block_size, NULL)==FR_OK) {
+    Audio_Player_Init((uint8_t*)music_buffer, music_block_size*2);
+    Audio_Player_Play(44100, 16);
+  }else {
+    DMA_Uart_Send("Error reading file\r\n", 21);
+  }
+  for (;;) {
+    uint32_t length;
+    uint32_t flag = osThreadFlagsWait(0xff, osFlagsWaitAny, osWaitForever);
+    if (flag & 0x01) {
+      // read the second half of the buffer
+      f_read(&music_file, &music_buffer[music_block_size/2], music_block_size, &length);
+      SCB_CleanDCache_by_Addr((uint32_t*)&music_buffer[music_block_size/2], music_block_size);
+    } else if (flag & 0x02) {
+      // read the first half of the buffer
+      f_read(&music_file, &music_buffer[0], music_block_size, &length);
+       SCB_CleanDCache_by_Addr((uint32_t*)&music_buffer[0], music_block_size);
+    }    
+  }
+}
+/* USER CODE END FileRead*/
+
 /* USER CODE BEGIN Header_StartLCD */
 /**
  * @brief Function implementing the lcdTask thread.
@@ -651,7 +725,7 @@ void StartLCD(void *argument)
 
   while (1)
   {
-    lv_timer_handler();
+   lv_timer_handler();
     osDelay(1);
   }
   /* USER CODE END StartLCD */
