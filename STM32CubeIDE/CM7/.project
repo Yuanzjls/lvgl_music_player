@@ -146,6 +146,26 @@
 			<location>C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c</location>
 		</link>
 		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sai.c</name>
+			<type>1</type>
+			<location>C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sai.c</location>
+		</link>
+		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sai_ex.c</name>
+			<type>1</type>
+			<location>C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sai_ex.c</location>
+		</link>
+		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sd.c</name>
+			<type>1</type>
+			<location>C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sd.c</location>
+		</link>
+		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sdio.c</name>
+			<type>1</type>
+			<location>C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sdio.c</location>
+		</link>
+		<link>
 			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sdram.c</name>
 			<type>1</type>
 			<location>C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sdram.c</location>
@@ -179,6 +199,11 @@
 			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_ll_fmc.c</name>
 			<type>1</type>
 			<location>C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_fmc.c</location>
+		</link>
+		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_ll_sdmmc.c</name>
+			<type>1</type>
+			<location>C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_sdmmc.c</location>
 		</link>
 		<link>
 			<name>Middlewares/FreeRTOS/cmsis_os2.c</name>
@@ -229,6 +254,11 @@
 			<name>Middlewares/FreeRTOS/timers.c</name>
 			<type>1</type>
 			<location>C:/Users/scott/STM32Cube/Repository/STM32Cube_FW_H7_V1.12.0/Middlewares/Third_Party/FreeRTOS/Source/timers.c</location>
+		</link>
+		<link>
+			<name>Application/User/Core/audio_player.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/CM7/Core/Src/audio_player.c</locationURI>
 		</link>
 		<link>
 			<name>Application/User/Core/dma_uart.c</name>
