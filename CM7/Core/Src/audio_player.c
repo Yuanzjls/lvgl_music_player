@@ -16,9 +16,9 @@ void Audio_Player_Init(uint8_t* data, uint32_t length) {
   pData = data;
   aLength = length;
   AudioPlayInit.Device = AUDIO_OUT_DEVICE_HEADPHONE;
-  AudioPlayInit.ChannelsNbr = 2;
-  AudioPlayInit.SampleRate = AUDIO_FREQUENCY_44K;
-  AudioPlayInit.BitsPerSample = AUDIO_RESOLUTION_16B;
+  AudioPlayInit.ChannelsNbr =  data[0x16];//2;
+  AudioPlayInit.SampleRate = *(uint32_t*)(data + 0x18); // AUDIO_FREQUENCY_44K
+  AudioPlayInit.BitsPerSample = data[0x22]; // AUDIO_RESOLUTION_16B
   AudioPlayInit.Volume = 30;
   BSP_AUDIO_OUT_Init(0, &AudioPlayInit);
   BSP_AUDIO_OUT_SetVolume(0, AudioPlayInit.Volume);
@@ -29,6 +29,15 @@ void Audio_Player_Play(uint32_t sample_rate, uint32_t resolution) {
   BSP_AUDIO_OUT_SetBitsPerSample(0, resolution);
 
   BSP_AUDIO_OUT_Play(0, pData, aLength);
+}
+
+
+void Audio_Player_Pause() {
+  BSP_AUDIO_OUT_Pause(0);
+}
+
+void Audio_Player_Resume() {
+  BSP_AUDIO_OUT_Resume(0);
 }
 
 void Audio_Player_Stop() {

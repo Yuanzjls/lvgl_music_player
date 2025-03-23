@@ -32,6 +32,8 @@
 #include "lvgl_touch.h"
 #include "lvgl.h"
 #include "audio_player.h"
+#include "ui.h"
+#include <string.h>
 // #include "src/lv_init.h"
 /* USER CODE END Includes */
 
@@ -87,7 +89,7 @@ osThreadId_t music_file_Handle;
 const osThreadAttr_t music_file_handler_attributes = {
     .name = "file_reader_handler",
     .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityBelowNormal,
+    .priority = (osPriority_t)osPriorityAboveNormal,
 };
 
 /* USER CODE BEGIN PV */
@@ -359,7 +361,8 @@ int main(void)
  lv_init();
  lvgl_display_init();
  lvgl_touchscreen_init();
- lv_demo_music();
+//  lv_demo_music();
+ ui_init();
 
   lv_tick_set_cb(HAL_GetTick);
   /* USER CODE END 2 */
@@ -666,6 +669,30 @@ void StartBlinkTask(void *argument)
  * @retval None
  */
 FIL music_file;
+DIR dir;
+FILINFO fno;
+char filename[256];
+
+void play_next_song() {
+  f_close(&music_file);
+  f_readdir(&dir, &fno);
+  // reach to the end of the directory
+  if (fno.fname[0] == 0) {
+    f_closedir(&dir);
+    if (f_opendir(&dir, "/music") != FR_OK) {
+      Error_Handler();
+    } else {
+      if (f_readdir(&dir, &fno) != FR_OK) {
+        Error_Handler();
+      }
+    }
+  }
+  
+  strcpy(filename, "music/");
+  strcat(filename, fno.fname);
+  f_open(&music_file, filename, FA_READ);
+}
+
 void MusicFileHandler(void *argument) {
   /* USER CODE BEGIN 5 */
   if(BSP_SD_Init(0) == BSP_ERROR_NONE) {
@@ -677,7 +704,23 @@ void MusicFileHandler(void *argument) {
   } else {
 	  Error_Handler();
   }
-  FRESULT res = f_open(&music_file, "test.wav", FA_READ); 
+
+  if (f_opendir(&dir, "/music") != FR_OK) {
+    Error_Handler();
+  }
+
+  if (f_readdir(&dir, &fno) != FR_OK) {
+    Error_Handler();
+  }
+
+  if (fno.fattrib & AM_DIR) {
+    // it is a directory
+    Error_Handler();
+  }
+  strcpy(filename, "music/");
+  strcat(filename, fno.fname);
+
+  FRESULT res = f_open(&music_file, filename, FA_READ); 
   if  (res == FR_OK) {
     DMA_Uart_Send("Successfully open the file\r\n", 29);
   } else {
@@ -688,11 +731,12 @@ void MusicFileHandler(void *argument) {
     DMA_Uart_Send("\r\n", 2);
     Error_Handler();
   }
-  ;
 
-  if (f_read(&music_file, &music_buffer, music_block_size, NULL)==FR_OK) {
+  if (f_read(&music_file, &music_buffer, music_block_size, NULL)==FR_OK) {    
     Audio_Player_Init((uint8_t*)music_buffer, music_block_size*2);
     Audio_Player_Play(44100, 16);
+    f_lseek(&music_file, 44);
+//    Audio_Player_Pause();
   }else {
     DMA_Uart_Send("Error reading file\r\n", 21);
   }
@@ -701,13 +745,29 @@ void MusicFileHandler(void *argument) {
     uint32_t flag = osThreadFlagsWait(0xff, osFlagsWaitAny, osWaitForever);
     if (flag & 0x01) {
       // read the second half of the buffer
-      f_read(&music_file, &music_buffer[music_block_size/2], music_block_size, &length);
+      res = f_read(&music_file, &music_buffer[music_block_size/2], music_block_size, &length);
       SCB_CleanDCache_by_Addr((uint32_t*)&music_buffer[music_block_size/2], music_block_size);
     } else if (flag & 0x02) {
       // read the first half of the buffer
-      f_read(&music_file, &music_buffer[0], music_block_size, &length);
-       SCB_CleanDCache_by_Addr((uint32_t*)&music_buffer[0], music_block_size);
-    }    
+      res = f_read(&music_file, &music_buffer[0], music_block_size, &length);
+      SCB_CleanDCache_by_Addr((uint32_t*)&music_buffer[0], music_block_size);
+    } else if (flag & 0x04) {
+      // pause the music
+      Audio_Player_Pause();
+    } else if (flag & 0x08) {
+      // resume the music
+      Audio_Player_Resume();
+    } else if (flag & 0x10) {
+      // play the next song
+      play_next_song();
+    }
+    if (flag & 0x01 || flag & 0x02) {
+      // reach to the end of the file, read the next file
+      if (f_eof(&music_file)) {
+        // end of file
+        play_next_song();
+      }
+    }
   }
 }
 /* USER CODE END FileRead*/

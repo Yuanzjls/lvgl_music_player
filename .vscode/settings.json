@@ -2,6 +2,16 @@
     "files.associations": {
         "main.h": "c",
         "stm32h7xx_hal.h": "c",
-        "stm32h7xx_it.h": "c"
+        "stm32h7xx_it.h": "c",
+        "audio_player.h": "c",
+        "*.tcc": "c",
+        "string_view": "c",
+        "regex": "c",
+        "ui_events.h": "c",
+        "ui.h": "c",
+        "lvgl.h": "c",
+        "stm32h747i_discovery_audio.h": "c",
+        "xstring": "c",
+        "xutility": "c"
     }
 }
